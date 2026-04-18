@@ -1,19 +1,186 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>IoT Anomaly Detection</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IoT Anomaly Detection — Control Panel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-  <h2>IoT Sensor Monitor</h2>
 
-  <input id="temp" placeholder="Temperature"><br><br>
-  <input id="humidity" placeholder="Humidity"><br><br>
-  <input id="battery" placeholder="Battery"><br><br>
+<!-- ── HEADER ── -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="2" stroke-linecap="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
+      </svg>
+    </div>
+    <div>
+      <div class="logo-text">IoT Sentinel</div>
+      <div class="logo-sub">ANOMALY DETECTION SYSTEM v1.0</div>
+    </div>
+  </div>
+  <div class="header-status">
+    <div class="status-chip chip-online">● ONLINE</div>
+    <div class="clock" id="clock">--:--:--</div>
+  </div>
+</header>
 
-  <button onclick="checkAnomaly()">Check</button>
+<!-- ── MAIN LAYOUT ── -->
+<div class="container">
 
-  <h3 id="result"></h3>
+  <!-- LEFT COLUMN -->
+  <div style="display:flex; flex-direction:column; gap:28px;">
 
-  <script src="script.js"></script>
+    <!-- Sensor Input -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">// Sensor Input</span>
+        <span class="panel-badge">MANUAL OVERRIDE</span>
+      </div>
+      <div class="panel-body">
+
+        <!-- Temperature -->
+        <div class="sensor-group">
+          <div class="sensor-label-row">
+            <span class="sensor-name"><span class="sensor-icon">🌡</span> Temperature</span>
+            <span><span class="sensor-val" id="temp-val">25</span><span class="sensor-unit">°C</span></span>
+          </div>
+          <input type="range" id="temp-slider" min="-10" max="100" value="25"
+                 oninput="updateSlider('temp', this.value)"/>
+          <div class="range-minmax"><span>-10°C</span><span>100°C</span></div>
+          <div class="gauge-bar-wrap">
+            <div class="gauge-track"><div class="gauge-fill" id="temp-gauge" style="width:32%"></div></div>
+          </div>
+        </div>
+
+        <!-- Humidity -->
+        <div class="sensor-group">
+          <div class="sensor-label-row">
+            <span class="sensor-name"><span class="sensor-icon">💧</span> Humidity</span>
+            <span><span class="sensor-val" id="hum-val">60</span><span class="sensor-unit">%</span></span>
+          </div>
+          <input type="range" id="hum-slider" min="0" max="100" value="60"
+                 oninput="updateSlider('hum', this.value)"/>
+          <div class="range-minmax"><span>0%</span><span>100%</span></div>
+          <div class="gauge-bar-wrap">
+            <div class="gauge-track"><div class="gauge-fill" id="hum-gauge" style="width:60%"></div></div>
+          </div>
+        </div>
+
+        <!-- Battery -->
+        <div class="sensor-group">
+          <div class="sensor-label-row">
+            <span class="sensor-name"><span class="sensor-icon">🔋</span> Battery</span>
+            <span><span class="sensor-val" id="bat-val">80</span><span class="sensor-unit">%</span></span>
+          </div>
+          <input type="range" id="bat-slider" min="0" max="100" value="80"
+                 oninput="updateSlider('bat', this.value)"/>
+          <div class="range-minmax"><span>0%</span><span>100%</span></div>
+          <div class="gauge-bar-wrap">
+            <div class="gauge-track"><div class="gauge-fill" id="bat-gauge" style="width:80%"></div></div>
+          </div>
+        </div>
+
+        <button class="btn-predict" id="predict-btn" onclick="predict()">
+          <span id="btn-text">⬡ Run Detection</span>
+        </button>
+        <div class="msg-bar msg-error" id="err-msg"></div>
+        <div class="msg-bar msg-info"  id="info-msg"></div>
+      </div>
+    </div>
+
+    <!-- Detection Result -->
+    <div class="panel" id="result-panel-wrap">
+      <div class="panel-header">
+        <span class="panel-title">// Detection Result</span>
+        <span class="panel-badge" id="res-code-badge">AWAITING INPUT</span>
+      </div>
+      <div class="result-panel result-idle" id="result-panel">
+        <div class="result-icon">◈</div>
+        <div class="result-msg">NO DATA — RUN DETECTION</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT COLUMN -->
+  <div style="display:flex; flex-direction:column; gap:28px;">
+
+    <!-- Session Stats -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">// Session Stats</span>
+        <span class="panel-badge">LIVE</span>
+      </div>
+      <div class="panel-body" style="padding-top:16px;">
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-num" id="stat-total">0</div>
+            <div class="stat-lbl">TOTAL</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num" id="stat-normal" style="color:var(--green)">0</div>
+            <div class="stat-lbl">NORMAL</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num" id="stat-anomaly" style="color:var(--red)">0</div>
+            <div class="stat-lbl">ANOMALY</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- API Endpoint -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">// API Endpoint</span>
+        <span class="panel-badge">CONFIG</span>
+      </div>
+      <div class="panel-body">
+        <div class="api-row">
+          <input class="api-input" id="api-url" type="text"
+                 value="http://127.0.0.1:8000" placeholder="http://127.0.0.1:8000"/>
+          <button class="btn-sm" onclick="testConnection()">PING</button>
+        </div>
+        <div class="msg-bar msg-info" id="ping-msg" style="margin-top:8px;"></div>
+      </div>
+    </div>
+
+    <!-- Request Log -->
+    <div class="panel" style="flex:1;">
+      <div class="panel-header">
+        <span class="panel-title">// Request Log</span>
+        <button class="btn-sm" onclick="clearLog()" style="font-size:9px;">CLEAR</button>
+      </div>
+      <div class="panel-body" style="padding-top:12px;">
+        <ul class="log-list" id="log-list">
+          <li class="log-empty">// NO ENTRIES YET</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Quick Presets -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">// Quick Presets</span>
+        <span class="panel-badge">SCENARIOS</span>
+      </div>
+      <div class="panel-body" style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+        <button class="btn-sm" onclick="loadPreset('normal')"  style="padding:10px 8px;font-size:9px;letter-spacing:1.5px;">◆ NORMAL</button>
+        <button class="btn-sm" onclick="loadPreset('hot')"     style="padding:10px 8px;font-size:9px;letter-spacing:1.5px;">🌡 OVERHEAT</button>
+        <button class="btn-sm" onclick="loadPreset('humid')"   style="padding:10px 8px;font-size:9px;letter-spacing:1.5px;">💧 HIGH HUM</button>
+        <button class="btn-sm" onclick="loadPreset('lowbat')"  style="padding:10px 8px;font-size:9px;letter-spacing:1.5px;">🔋 LOW BAT</button>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script src="app.js"></script>
 </body>
 </html>

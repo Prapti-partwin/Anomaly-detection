@@ -21,8 +21,8 @@ async function checkAnomaly() {
 }
 
 // 🔥 AUTO-GENERATE SENSOR DATA (Real IoT Simulation)
-setInterval(() => {
-    document.getElementById("temp").value = (Math.random() * 100).toFixed(2);
-    document.getElementById("humidity").value = (Math.random() * 100).toFixed(2);
-    document.getElementById("battery").value = (Math.random() * 100).toFixed(2);
-}, 3000);
+// setInterval(() => {
+//     document.getElementById("temp").value = (Math.random() * 100).toFixed(2);
+//     document.getElementById("humidity").value = (Math.random() * 100).toFixed(2);
+//     document.getElementById("battery").value = (Math.random() * 100).toFixed(2);
+// }, 3000);

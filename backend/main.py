@@ -1,8 +1,16 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from backend.model import predict_anomaly
+from fastapi.middleware.cors import CORSMiddleware  # ADD THIS for integration with frontend
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # or replace * with "http://127.0.0.1:5500" for safety
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class SensorData(BaseModel):
     temperature: float
